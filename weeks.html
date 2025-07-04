@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>残り人生ウィジェット</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #0f0;
+      font-family: sans-serif;
+      padding: 20px;
+      font-size: 18px;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+    select, input[type="number"] {
+      margin-right: 5px;
+      font-size: 16px;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>目標年齢までの残り時間</h2>
+
+  <label>生年月日：
+    <select id="year"></select>年
+    <select id="month"></select>月
+    <select id="day"></select>日
+  </label>
+
+  <label>目標年齢（歳）：
+    <input type="number" id="targetage" min="1" max="150" value="90">
+  </label>
+
+  <button onclick="startCountdown()">設定完了</button>
+
+  <div id="result"></div>
+
+  <script>
+    // ▼ セレクト初期化
+    const yearSel = document.getElementById("year");
+    const monthSel = document.getElementById("month");
+    const daySel = document.getElementById("day");
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+
+    for (let y = currentYear; y >= 1900; y--) {
+      let opt = document.createElement("option");
+      opt.value = y;
+      opt.text = y;
+      yearSel.add(opt);
+    }
+
+    for (let m = 1; m <= 12; m++) {
+      let opt = document.createElement("option");
+      opt.value = m;
+      opt.text = m;
+      monthSel.add(opt);
+    }
+
+    function updateDays() {
+      const year = parseInt(yearSel.value);
+      const month = parseInt(monthSel.value);
+      const daysInMonth = new Date(year, month, 0).getDate();
+      daySel.innerHTML = "";
+      for (let d = 1; d <= daysInMonth; d++) {
+        let opt = document.createElement("option");
+        opt.value = d;
+        opt.text = d;
+        daySel.add(opt);
+      }
+    }
+
+    yearSel.onchange = updateDays;
+    monthSel.onchange = updateDays;
+
+    // 初期値：今日
+    yearSel.value = currentYear;
+    monthSel.value = now.getMonth() + 1;
+    updateDays();
+    daySel.value = now.getDate();
+
+    // ▼ 残り週＋日＋時間＋分＋秒をリアルタイム表示
+    let timer = null;
+
+    function startCountdown() {
+      const y = parseInt(yearSel.value);
+      const m = parseInt(monthSel.value);
+      const d = parseInt(daySel.value);
+      const ageInput = parseInt(document.getElementById("targetage").value);
+
+      if (isNaN(y) || isNaN(m) || isNaN(d) || isNaN(ageInput)) {
+        document.getElementById("result").textContent = "正しい生年月日と年齢を入力してください。";
+        return;
+      }
+
+      const birthDate = new Date(y, m - 1, d);
+      const targetDate = new Date(birthDate);
+      targetDate.setFullYear(birthDate.getFullYear() + ageInput);
+
+      if (timer) clearInterval(timer);
+
+      function update() {
+        const now = new Date();
+        const diffMs = targetDate - now;
+
+        if (diffMs <= 0) {
+          document.getElementById("result").textContent = `${ageInput}歳をすでに超えています。`;
+          clearInterval(timer);
+          return;
+        }
+
+        const totalSec = Math.floor(diffMs / 1000);
+        const weeks = Math.floor(totalSec / (7 * 86400));
+        const days = Math.floor((totalSec % (7 * 86400)) / 86400);
+        const hours = Math.floor((totalSec % 86400) / 3600);
+        const minutes = Math.floor((totalSec % 3600) / 60);
+        const seconds = totalSec % 60;
+
+        document.getElementById("result").textContent =
+          `残り ${weeks} 週 ${days} 日 ${hours} 時間 ${minutes} 分 ${seconds} 秒`;
+      }
+
+      update();
+      timer = setInterval(update, 1000);
+    }
+  </script>
+</body>
+</html>
