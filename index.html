@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>残り人生ウィジェット</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111111">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon192.png">
   <style>
     body {
       background-color: #111;
@@ -44,7 +49,6 @@
   <div id="result"></div>
 
   <script>
-    // ▼ セレクト初期化
     const yearSel = document.getElementById("year");
     const monthSel = document.getElementById("month");
     const daySel = document.getElementById("day");
@@ -82,13 +86,11 @@
     yearSel.onchange = updateDays;
     monthSel.onchange = updateDays;
 
-    // 初期値：今日
     yearSel.value = currentYear;
     monthSel.value = now.getMonth() + 1;
     updateDays();
     daySel.value = now.getDate();
 
-    // ▼ 残り週＋日＋時間＋分＋秒をリアルタイム表示
     let timer = null;
 
     function startCountdown() {
@@ -131,6 +133,13 @@
 
       update();
       timer = setInterval(update, 1000);
+    }
+
+    // PWA対応：ServiceWorker登録
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('ServiceWorker registered'))
+        .catch(err => console.error('SW registration failed:', err));
     }
   </script>
 </body>
